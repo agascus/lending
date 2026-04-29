@@ -1035,7 +1035,7 @@ def repost_days_past_due_log(
 		.where(
 			(LoanDemand.loan == loan) & (LoanDemand.docstatus == 1) & (LoanDemand.demand_type == "EMI")
 		)
-		.groupby(LoanDemand.demand_date, LoanDemand.demand_subtype)
+		.groupby(LoanDemand.demand_date, LoanDemand.demand_subtype, LoanDemand.loan_disbursement)  # nexfin-patch: PostgreSQL requires all non-aggregate SELECT columns in GROUP BY
 		.orderby(LoanDemand.demand_date)
 	)
 

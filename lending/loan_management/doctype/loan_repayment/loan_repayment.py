@@ -861,11 +861,11 @@ class LoanRepayment(LoanController):
 		)
 
 		if future_repayment_date:
-			self.is_backdated = True
+			self.is_backdated = 1
 		else:
-			self.is_backdated = False
+			self.is_backdated = 0
 
-		self.db_set("is_backdated", self.is_backdated)
+		self.db_set("is_backdated", self.is_backdated)  # nexfin-patch: PostgreSQL rejects boolean for smallint Check field
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
@@ -1404,10 +1404,13 @@ class LoanRepayment(LoanController):
 			else:
 				paid_amount_field = "paid_amount"
 
+			# nexfin-patch: Use + (-value) instead of - value to avoid PyPika generating
+			# "--value" which PostgreSQL interprets as a line comment, silently skipping
+			# the outstanding_amount update on cancel.
 			frappe.qb.update(loan_demand).set(
 				loan_demand[paid_amount_field], loan_demand[paid_amount_field] + paid_amount
 			).set(
-				loan_demand.outstanding_amount, loan_demand.outstanding_amount - paid_amount
+				loan_demand.outstanding_amount, loan_demand.outstanding_amount + (-paid_amount)
 			).set(
 				loan_demand.partner_share_allocated,
 				loan_demand.partner_share_allocated + partner_share,
