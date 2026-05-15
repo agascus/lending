@@ -38,12 +38,9 @@ def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amoun
 	return math.ceil(repayment_periods)
 
 def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
-	if frequency == "Monthly":
-		years = 12
-	else:
-		years = 1
-
-	total_interest = loan_amount * rate_of_interest * repayment_periods/ (years * 100)
+	# nexfin-patch: use get_frequency() so Half-Yearly / Yearly periods per year are correct
+	periods_per_year = get_frequency(frequency) or 12
+	total_interest = loan_amount * rate_of_interest * repayment_periods / (periods_per_year * 100)
 	total_amount = loan_amount + total_interest
 	monthly_repayment_amount = math.ceil(flt(total_amount) / repayment_periods)
 
@@ -58,6 +55,8 @@ def get_frequency(frequency):
 		"Daily": 365,
 		"Quarterly": 4,
 		"One Time": 1,
+		"Half-Yearly": 2,  # nexfin-patch: added for NexFin Half-Yearly repayment frequency
+		"Yearly": 1,       # nexfin-patch: added for NexFin Yearly repayment frequency
 	}.get(frequency)
 
 
